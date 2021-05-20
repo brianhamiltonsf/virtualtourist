@@ -29,6 +29,8 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        collectionView.delegate = self
+        collectionView.dataSource = self
         mapView.delegate = self
         mapView.isScrollEnabled = false
         mapView.isZoomEnabled = false
@@ -82,18 +84,20 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     }
     
     @IBAction func newCollectionButtonTapped(_ sender: Any) {
-//        newCollectionButton.isEnabled = false
-//        activityIndicator.startAnimating()
+        newCollectionButton.isEnabled = false
+        activityIndicator.startAnimating()
 //        photoAlbum.removeAll()
-//        if lastPage == numberOfPages {
-//            lastPage = 0
-//        }
-//        downloadImageURLs(page: lastPage + 1, completion: {
-//            self.lastPage = self.lastPage + 1
-//            self.activityIndicator.stopAnimating()
-//            self.newCollectionButton.isEnabled = true
-//        })
-        self.collectionView.reloadData()
+        if lastPage == numberOfPages {
+            lastPage = 0
+        }
+        downloadImageURLs(page: lastPage + 1, completion: {
+            self.lastPage = self.lastPage + 1
+        })
+        DispatchQueue.main.async {
+            self.activityIndicator.stopAnimating()
+            self.newCollectionButton.isEnabled = true
+            self.collectionView.reloadData()
+        }
     }
     
     func downloadImageURLs(page: Int, completion: @escaping () -> Void) {
@@ -108,6 +112,9 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
                     photo.pin = self.pin
                     self.dataController.save()
                 } // end for loop
+                DispatchQueue.main.async {
+                    self.collectionView.reloadData()
+                }
             } else {
                 print("error getting image id's")
                 print(error?.localizedDescription ?? "error")
@@ -117,10 +124,6 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
 }
 
 extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    
-//    func numberOfSections(in collectionView: UICollectionView) -> Int {
-//        return 1
-//    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
 //        return photoAlbum.count
@@ -144,8 +147,9 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
                 photo.photo = data
                 photo.pin = self.pin
                 self.dataController.save()
-                cell.photoImageView.image = UIImage(data: photo.photo!)
-                self.collectionView.reloadData()
+                DispatchQueue.main.async {
+                    cell.photoImageView.image = UIImage(data: photo.photo!)
+                }
             }
             
         } // end else
