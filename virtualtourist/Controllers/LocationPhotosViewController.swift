@@ -19,7 +19,7 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var pin: Pin!
-    var photoAlbum = [Photo]()
+//    var photoAlbum = [Photo]()
     var dataController:DataController!
     var numberOfPages = 1
     var lastPage = 1
@@ -68,10 +68,10 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
         fetchRequest.predicate = predicate
         let sortDescriptor = NSSortDescriptor(key: "url", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
-        if let result = try? dataController.viewContext.fetch(fetchRequest) {
-            photoAlbum = result
-            self.collectionView.reloadData()
-        }
+//        if let result = try? dataController.viewContext.fetch(fetchRequest) {
+//            photoAlbum = result
+//            self.collectionView.reloadData()
+//        }
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         do {
@@ -107,7 +107,6 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
                     photo.url = photoURL
                     photo.pin = self.pin
                     self.dataController.save()
-                    self.collectionView.reloadData()
                 } // end for loop
             } else {
                 print("error getting image id's")
@@ -124,19 +123,20 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
 //    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return photoAlbum.count
-//        return fetchedResultsController.fetchedObjects!.count
+//        return photoAlbum.count
+        return fetchedResultsController.fetchedObjects!.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         //
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! PhotoCollectionViewCell
-//        let photo = fetchedResultsController.object(at: indexPath)
-        let photo = photoAlbum[indexPath.row]
+        let photo = fetchedResultsController.object(at: indexPath)
+//        let photo = photoAlbum[indexPath.row]
         if let photo = photo.photo {
             cell.photoImageView.image = UIImage(data: photo)
         } else {
-            let photoURL = photoAlbum[indexPath.row].url!
+//            let photoURL = photoAlbum[indexPath.row].url!
+            let photoURL = photo.url!
             FlickrClient.downloadImage(path: URL(string: photoURL)!) { data, error in
                 guard let data = data else {
                     return
@@ -154,10 +154,10 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let photo = photoAlbum[indexPath.row]
-//        let photo = fetchedResultsController.object(at: indexPath)
+//        let photo = photoAlbum[indexPath.row]
+        let photo = fetchedResultsController.object(at: indexPath)
         dataController.viewContext.delete(photo)
-        photoAlbum.remove(at: indexPath.row)
+//        photoAlbum.remove(at: indexPath.row)
         collectionView.deleteItems(at: [indexPath])
         try? dataController.viewContext.save()
     }
