@@ -23,6 +23,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         mapView.delegate = self
+        mapView.isRotateEnabled = false
         setupFetchRequestController()
         setupMap()
         let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleTap(gestureRecognizer:)))
@@ -46,6 +47,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         let fetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
+
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         do {

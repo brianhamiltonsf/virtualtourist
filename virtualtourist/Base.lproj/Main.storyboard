@@ -47,14 +47,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YPz-MK-KB7">
-                                <rect key="frame" x="0.0" y="812" width="414" height="84"/>
-                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="26"/>
-                                <state key="normal" title="New Collection"/>
-                                <connections>
-                                    <action selector="newCollectionButtonTapped:" destination="qAn-PN-pQU" eventType="touchUpInside" id="YVF-L9-PIs"/>
-                                </connections>
-                            </button>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="uUM-Ge-PQt">
                                 <rect key="frame" x="0.0" y="44" width="414" height="160"/>
                                 <constraints>
@@ -103,20 +95,38 @@
                                     </collectionViewCell>
                                 </cells>
                             </collectionView>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vuk-bR-4zM">
+                                <rect key="frame" x="0.0" y="818" width="414" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="Ygl-uB-wFu"/>
+                                </constraints>
+                                <items>
+                                    <barButtonItem style="plain" id="lsK-sp-UYk">
+                                        <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="YPz-MK-KB7">
+                                            <rect key="frame" x="20" y="0.0" width="374" height="44"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <fontDescription key="fontDescription" type="system" weight="medium" pointSize="26"/>
+                                            <state key="normal" title="New Collection"/>
+                                            <connections>
+                                                <action selector="newCollectionButtonTapped:" destination="RJu-wv-5Zc" eventType="touchUpInside" id="sEb-2F-jFj"/>
+                                            </connections>
+                                        </button>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Q21-hX-P8c"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="Q21-hX-P8c" firstAttribute="trailing" secondItem="uUM-Ge-PQt" secondAttribute="trailing" id="3eA-WV-L7C"/>
-                            <constraint firstItem="YPz-MK-KB7" firstAttribute="leading" secondItem="Q21-hX-P8c" secondAttribute="leading" id="5Ge-ux-bz6"/>
                             <constraint firstItem="Q21-hX-P8c" firstAttribute="bottom" secondItem="RLd-Fn-JnC" secondAttribute="bottom" constant="50" id="5YX-jQ-V5g"/>
-                            <constraint firstItem="YPz-MK-KB7" firstAttribute="top" secondItem="RLd-Fn-JnC" secondAttribute="bottom" id="GXr-Ab-pFg"/>
                             <constraint firstItem="RLd-Fn-JnC" firstAttribute="top" secondItem="uUM-Ge-PQt" secondAttribute="bottom" id="Lke-Yo-6bB"/>
                             <constraint firstItem="Q21-hX-P8c" firstAttribute="trailing" secondItem="RLd-Fn-JnC" secondAttribute="trailing" id="T20-dj-RJo"/>
-                            <constraint firstItem="Q21-hX-P8c" firstAttribute="trailing" secondItem="YPz-MK-KB7" secondAttribute="trailing" id="V1W-6m-9I8"/>
+                            <constraint firstItem="Q21-hX-P8c" firstAttribute="bottom" secondItem="vuk-bR-4zM" secondAttribute="bottom" id="aFO-dz-Xil"/>
                             <constraint firstItem="uUM-Ge-PQt" firstAttribute="top" secondItem="Q21-hX-P8c" secondAttribute="top" id="aow-nG-z3r"/>
+                            <constraint firstItem="vuk-bR-4zM" firstAttribute="leading" secondItem="Q21-hX-P8c" secondAttribute="leading" id="bJL-nA-FoW"/>
                             <constraint firstItem="RLd-Fn-JnC" firstAttribute="leading" secondItem="Q21-hX-P8c" secondAttribute="leading" id="dMd-Ks-WJz"/>
-                            <constraint firstAttribute="bottom" secondItem="YPz-MK-KB7" secondAttribute="bottom" id="gSg-j9-iRy"/>
+                            <constraint firstItem="vuk-bR-4zM" firstAttribute="trailing" secondItem="Q21-hX-P8c" secondAttribute="trailing" id="rSw-56-ETm"/>
                             <constraint firstItem="uUM-Ge-PQt" firstAttribute="leading" secondItem="Q21-hX-P8c" secondAttribute="leading" id="y2b-xH-qf4"/>
                         </constraints>
                     </view>
@@ -125,7 +135,7 @@
                         <outlet property="collectionView" destination="RLd-Fn-JnC" id="Gdz-wb-NkN"/>
                         <outlet property="flowLayout" destination="5BA-IL-7kV" id="jSE-o4-O1s"/>
                         <outlet property="mapView" destination="uUM-Ge-PQt" id="XSJ-Y8-gbI"/>
-                        <outlet property="newCollectionButton" destination="YPz-MK-KB7" id="HAE-WR-a7L"/>
+                        <outlet property="newCollectionButton" destination="YPz-MK-KB7" id="7dO-Q2-Bsc"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RAq-PW-CJw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

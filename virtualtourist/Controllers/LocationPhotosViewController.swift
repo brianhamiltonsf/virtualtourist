@@ -12,9 +12,9 @@ import CoreData
 
 class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetchedResultsControllerDelegate {
     
+    @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
-    @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
@@ -63,10 +63,15 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     
     fileprivate func setupFetchRequestController() {
         let fetchRequest:NSFetchRequest<Photo> = Photo.fetchRequest()
-        let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin!])
+//        let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin!])
+        let predicate = NSPredicate(format: "pin == %@", pin)
         fetchRequest.predicate = predicate
         let sortDescriptor = NSSortDescriptor(key: "url", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
+        if let result = try? dataController.viewContext.fetch(fetchRequest) {
+            photoAlbum = result
+            self.collectionView.reloadData()
+        }
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         do {
@@ -77,17 +82,17 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     }
     
     @IBAction func newCollectionButtonTapped(_ sender: Any) {
-        newCollectionButton.isEnabled = false
-        activityIndicator.startAnimating()
-        photoAlbum.removeAll()
-        if lastPage == numberOfPages {
-            lastPage = 0
-        }
-        downloadImageURLs(page: lastPage + 1, completion: {
-            self.lastPage = self.lastPage + 1
-            self.activityIndicator.stopAnimating()
-            self.newCollectionButton.isEnabled = true
-        })
+//        newCollectionButton.isEnabled = false
+//        activityIndicator.startAnimating()
+//        photoAlbum.removeAll()
+//        if lastPage == numberOfPages {
+//            lastPage = 0
+//        }
+//        downloadImageURLs(page: lastPage + 1, completion: {
+//            self.lastPage = self.lastPage + 1
+//            self.activityIndicator.stopAnimating()
+//            self.newCollectionButton.isEnabled = true
+//        })
         self.collectionView.reloadData()
     }
     
@@ -102,30 +107,31 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
                     photo.url = photoURL
                     photo.pin = self.pin
                     self.dataController.save()
+                    self.collectionView.reloadData()
                 } // end for loop
             } else {
                 print("error getting image id's")
                 print(error?.localizedDescription ?? "error")
             } // end else
         } // end getImageIDs closure
-        collectionView.reloadData()
     } // end initial image download
 }
 
 extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 1
-    }
+//    func numberOfSections(in collectionView: UICollectionView) -> Int {
+//        return 1
+//    }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return photoAlbum.count
+//        return fetchedResultsController.fetchedObjects!.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         //
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! PhotoCollectionViewCell
-        cell.photoImageView.image = UIImage(named: "Virtual_Tourst_76")
+//        let photo = fetchedResultsController.object(at: indexPath)
         let photo = photoAlbum[indexPath.row]
         if let photo = photo.photo {
             cell.photoImageView.image = UIImage(data: photo)
@@ -138,16 +144,18 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
                 photo.photo = data
                 photo.pin = self.pin
                 self.dataController.save()
+                cell.photoImageView.image = UIImage(data: photo.photo!)
+                self.collectionView.reloadData()
             }
-            cell.photoImageView.image = UIImage(data: photo.photo!)
+            
         } // end else
 
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let photo = fetchedResultsController.object(at: indexPath)
         let photo = photoAlbum[indexPath.row]
+//        let photo = fetchedResultsController.object(at: indexPath)
         dataController.viewContext.delete(photo)
         photoAlbum.remove(at: indexPath.row)
         collectionView.deleteItems(at: [indexPath])
