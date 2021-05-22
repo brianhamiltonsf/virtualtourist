@@ -197,13 +197,12 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let photo = photoAlbum[indexPath.row]
         let photo = fetchedResultsController.object(at: indexPath)
         dataController.viewContext.delete(photo)
-//        photoAlbum.remove(at: indexPath.row)
         try? dataController.viewContext.save()
         DispatchQueue.main.async {
             collectionView.deleteItems(at: [indexPath])
+            self.setupFetchRequestController()
             collectionView.reloadData()
         }
         

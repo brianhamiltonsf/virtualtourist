@@ -39,7 +39,6 @@ class FlickrClient {
                 return
             }
             let decoder = JSONDecoder()
-//            print(String(data: data, encoding: .utf8)!)
             do {
                 let flickrResponse = try decoder.decode(Photos.self, from: data)
                 completion(true, flickrResponse, nil)
