@@ -57,6 +57,15 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
         }
     }
     
+//    func getTappedPin() {
+//        let fetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
+//        let predicate = NSPredicate(format: "latitude == %d", latitude)
+//        fetchRequest.predicate = predicate
+//        let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: true)
+//        fetchRequest.sortDescriptors = [sortDescriptor]
+//        
+//    }
+    
     // MARK: Map functions
     
     // Retrieves the last used location and span and applies it to the map
@@ -108,6 +117,7 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
             annotation.coordinate = coordinate
             mapView.addAnnotation(annotation)
             let newPin = Pin(context: dataController.viewContext)
+            pins?.append(newPin)
             newPin.latitude = coordinate.latitude
             newPin.longitude = coordinate.longitude
             do {

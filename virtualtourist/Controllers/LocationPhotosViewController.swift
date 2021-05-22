@@ -48,6 +48,10 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
         if pin.photos?.count == 0 {
             print("no photos, should be downloading URL's")
             downloadImageURLs(page: 1, completion: {
+                self.collectionView.reloadData()
+                if self.pin.photos?.count == 0 {
+                    self.noPhotos()
+                }
             })
         }
         let space:CGFloat = 3.0
@@ -61,6 +65,12 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         fetchedResultsController = nil
+    }
+    
+    func noPhotos(){
+        let alert = UIAlertController(title: "", message: "No photos were found at this location", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alert, animated: true)
     }
     
     fileprivate func setupFetchRequestController() {
@@ -85,6 +95,14 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     
     @IBAction func newCollectionButtonTapped(_ sender: Any) {
         newCollectionButton.isEnabled = false
+        if let objects = self.fetchedResultsController.fetchedObjects {
+            let photosToDelete = self.collectionView.indexPathsForVisibleItems
+            collectionView.deleteItems(at: photosToDelete)
+            for object in objects {
+                self.dataController.viewContext.delete(object)
+                try? self.dataController.viewContext.save()
+            }
+        }
         activityIndicator.startAnimating()
 //        photoAlbum.removeAll()
         if lastPage == numberOfPages {
@@ -92,6 +110,27 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
         }
         downloadImageURLs(page: lastPage + 1, completion: {
             self.lastPage = self.lastPage + 1
+            self.setupFetchRequestController()
+            if let newPhotos = self.fetchedResultsController.fetchedObjects {
+                for newPhoto in newPhotos {
+                    let newPhotoURL = newPhoto.url!
+                    FlickrClient.downloadImage(path: URL(string: newPhotoURL)!) { data, error in
+                        guard let data = data else {
+                            return
+                        }
+                        newPhoto.photo = data
+                        newPhoto.pin = self.pin
+                        self.dataController.save()
+//                        DispatchQueue.main.async {
+//                            self.collectionView.reloadData()
+//                        } // end async
+                    } // end downloadImage closure
+                } // end for loop
+            }
+//            DispatchQueue.main.async {
+//                self.activityIndicator.stopAnimating()
+//                self.newCollectionButton.isEnabled = true
+//            }
         })
         DispatchQueue.main.async {
             self.activityIndicator.stopAnimating()
@@ -102,15 +141,18 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     
     func downloadImageURLs(page: Int, completion: @escaping () -> Void) {
         let flickrResponseURL = FlickrClient.getPlacesURL(latitude: pin.latitude, longitude: pin.longitude, perPage: 15, page: page)
+        print("flickrResponseURL: \(flickrResponseURL)")
         FlickrClient.getImageIDs(url: flickrResponseURL, latitude: pin.latitude, longitude: pin.longitude, perPage: 15, page: page) { bool, data, error in
             if bool {
                 self.numberOfPages = data!.photos.pages
                 for photo in data!.photos.photo {
                     let photoURL = FlickrClient.generatePhotoURL(photo: photo)
+                    print("photoURL: \(photoURL)")
                     let photo = Photo(context: self.dataController.viewContext)
                     photo.url = photoURL
                     photo.pin = self.pin
                     self.dataController.save()
+                    print("photos.count: \(self.pin.photos?.count)")
                 } // end for loop
                 DispatchQueue.main.async {
                     self.collectionView.reloadData()
@@ -139,16 +181,18 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
             cell.photoImageView.image = UIImage(data: photo)
         } else {
 //            let photoURL = photoAlbum[indexPath.row].url!
-            let photoURL = photo.url!
-            FlickrClient.downloadImage(path: URL(string: photoURL)!) { data, error in
-                guard let data = data else {
-                    return
-                }
-                photo.photo = data
-                photo.pin = self.pin
-                self.dataController.save()
-                DispatchQueue.main.async {
-                    cell.photoImageView.image = UIImage(data: photo.photo!)
+            if let url = photo.url {
+                let photoURL = url
+                FlickrClient.downloadImage(path: URL(string: photoURL)!) { data, error in
+                    guard let data = data else {
+                        return
+                    }
+                    photo.photo = data
+                    photo.pin = self.pin
+                    self.dataController.save()
+                    DispatchQueue.main.async {
+                        cell.photoImageView.image = UIImage(data: photo.photo!)
+                    }
                 }
             }
             
@@ -162,8 +206,12 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
         let photo = fetchedResultsController.object(at: indexPath)
         dataController.viewContext.delete(photo)
 //        photoAlbum.remove(at: indexPath.row)
-        collectionView.deleteItems(at: [indexPath])
         try? dataController.viewContext.save()
+        DispatchQueue.main.async {
+            collectionView.deleteItems(at: [indexPath])
+            collectionView.reloadData()
+        }
+        
     }
 }
 
