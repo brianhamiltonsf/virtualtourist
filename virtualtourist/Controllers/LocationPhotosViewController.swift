@@ -19,7 +19,6 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     var pin: Pin!
-//    var photoAlbum = [Photo]()
     var dataController:DataController!
     var numberOfPages = 1
     var lastPage = 1
@@ -46,7 +45,6 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
             mapView.setRegion(region, animated: true)
         }
         if pin.photos?.count == 0 {
-            print("no photos, should be downloading URL's")
             downloadImageURLs(page: 1, completion: {
                 self.collectionView.reloadData()
                 if self.pin.photos?.count == 0 {
@@ -68,22 +66,17 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     }
     
     func noPhotos(){
-        let alert = UIAlertController(title: "", message: "No photos were found at this location", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Error", message: "No photos were found at this location", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true)
     }
     
     fileprivate func setupFetchRequestController() {
         let fetchRequest:NSFetchRequest<Photo> = Photo.fetchRequest()
-//        let predicate = NSPredicate(format: "pin == %@", argumentArray: [pin!])
         let predicate = NSPredicate(format: "pin == %@", pin)
         fetchRequest.predicate = predicate
         let sortDescriptor = NSSortDescriptor(key: "url", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
-//        if let result = try? dataController.viewContext.fetch(fetchRequest) {
-//            photoAlbum = result
-//            self.collectionView.reloadData()
-//        }
         fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: dataController.viewContext, sectionNameKeyPath: nil, cacheName: nil)
         fetchedResultsController.delegate = self
         do {
@@ -96,15 +89,12 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     @IBAction func newCollectionButtonTapped(_ sender: Any) {
         newCollectionButton.isEnabled = false
         if let objects = self.fetchedResultsController.fetchedObjects {
-            let photosToDelete = self.collectionView.indexPathsForVisibleItems
-            collectionView.deleteItems(at: photosToDelete)
+            print(objects.count)
             for object in objects {
                 self.dataController.viewContext.delete(object)
                 try? self.dataController.viewContext.save()
             }
         }
-        activityIndicator.startAnimating()
-//        photoAlbum.removeAll()
         if lastPage == numberOfPages {
             lastPage = 0
         }
@@ -121,25 +111,18 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
                         newPhoto.photo = data
                         newPhoto.pin = self.pin
                         self.dataController.save()
-//                        DispatchQueue.main.async {
-//                            self.collectionView.reloadData()
-//                        } // end async
+                        self.newCollectionButton.isEnabled = true
+                        DispatchQueue.main.async {
+                            self.newCollectionButton.isEnabled = true
+                        } // end async
                     } // end downloadImage closure
                 } // end for loop
-            }
-//            DispatchQueue.main.async {
-//                self.activityIndicator.stopAnimating()
-//                self.newCollectionButton.isEnabled = true
-//            }
+            } // end if let newPhotos
         })
-        DispatchQueue.main.async {
-            self.activityIndicator.stopAnimating()
-            self.newCollectionButton.isEnabled = true
-            self.collectionView.reloadData()
-        }
     }
     
     func downloadImageURLs(page: Int, completion: @escaping () -> Void) {
+        activityIndicator.startAnimating()
         let flickrResponseURL = FlickrClient.getPlacesURL(latitude: pin.latitude, longitude: pin.longitude, perPage: 15, page: page)
         FlickrClient.getImageIDs(url: flickrResponseURL, latitude: pin.latitude, longitude: pin.longitude, perPage: 15, page: page) { bool, data, error in
             if bool {
@@ -154,6 +137,7 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
                 self.setupFetchRequestController()
                 DispatchQueue.main.async {
                     self.collectionView.reloadData()
+                    self.activityIndicator.stopAnimating()
                 }
             } else {
                 print("error getting image id's")
@@ -166,18 +150,16 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
 extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return photoAlbum.count
         return fetchedResultsController.fetchedObjects!.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        newCollectionButton.isEnabled = true
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! PhotoCollectionViewCell
         let photo = fetchedResultsController.object(at: indexPath)
-//        let photo = photoAlbum[indexPath.row]
         if let photo = photo.photo {
             cell.photoImageView.image = UIImage(data: photo)
         } else {
-//            let photoURL = photoAlbum[indexPath.row].url!
             if let url = photo.url {
                 let photoURL = url
                 FlickrClient.downloadImage(path: URL(string: photoURL)!) { data, error in
@@ -188,7 +170,9 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
                     photo.pin = self.pin
                     self.dataController.save()
                     DispatchQueue.main.async {
-                        cell.photoImageView.image = UIImage(data: photo.photo!)
+                        if let photo = photo.photo {
+                            cell.photoImageView.image = UIImage(data: photo)
+                        }
                     }
                 } // end closure
             } // end if let
@@ -200,9 +184,9 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
         let photo = fetchedResultsController.object(at: indexPath)
         dataController.viewContext.delete(photo)
         try? dataController.viewContext.save()
+        self.setupFetchRequestController()
         DispatchQueue.main.async {
             collectionView.deleteItems(at: [indexPath])
-            self.setupFetchRequestController()
             collectionView.reloadData()
         }
         
