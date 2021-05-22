@@ -141,19 +141,17 @@ class LocationPhotosViewController: UIViewController, MKMapViewDelegate, NSFetch
     
     func downloadImageURLs(page: Int, completion: @escaping () -> Void) {
         let flickrResponseURL = FlickrClient.getPlacesURL(latitude: pin.latitude, longitude: pin.longitude, perPage: 15, page: page)
-        print("flickrResponseURL: \(flickrResponseURL)")
         FlickrClient.getImageIDs(url: flickrResponseURL, latitude: pin.latitude, longitude: pin.longitude, perPage: 15, page: page) { bool, data, error in
             if bool {
                 self.numberOfPages = data!.photos.pages
                 for photo in data!.photos.photo {
                     let photoURL = FlickrClient.generatePhotoURL(photo: photo)
-                    print("photoURL: \(photoURL)")
                     let photo = Photo(context: self.dataController.viewContext)
                     photo.url = photoURL
                     photo.pin = self.pin
                     self.dataController.save()
-                    print("photos.count: \(self.pin.photos?.count)")
                 } // end for loop
+                self.setupFetchRequestController()
                 DispatchQueue.main.async {
                     self.collectionView.reloadData()
                 }
@@ -173,7 +171,6 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        //
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! PhotoCollectionViewCell
         let photo = fetchedResultsController.object(at: indexPath)
 //        let photo = photoAlbum[indexPath.row]
@@ -193,11 +190,9 @@ extension LocationPhotosViewController: UICollectionViewDelegate, UICollectionVi
                     DispatchQueue.main.async {
                         cell.photoImageView.image = UIImage(data: photo.photo!)
                     }
-                }
-            }
-            
+                } // end closure
+            } // end if let
         } // end else
-
         return cell
     }
     
