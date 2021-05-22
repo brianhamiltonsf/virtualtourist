@@ -16,7 +16,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
     var longitude: Double?
     var pins:[Pin]?
     var dataController:DataController = (UIApplication.shared.delegate as! AppDelegate).dataController
-    
     var fetchedResultsController: NSFetchedResultsController<Pin>!
         
     override func viewDidLoad() {
@@ -56,15 +55,6 @@ class TravelLocationsMapViewController: UIViewController, MKMapViewDelegate, UIG
             fatalError("The fetch could not be performed \(error.localizedDescription)")
         }
     }
-    
-//    func getTappedPin() {
-//        let fetchRequest:NSFetchRequest<Pin> = Pin.fetchRequest()
-//        let predicate = NSPredicate(format: "latitude == %d", latitude)
-//        fetchRequest.predicate = predicate
-//        let sortDescriptor = NSSortDescriptor(key: "latitude", ascending: true)
-//        fetchRequest.sortDescriptors = [sortDescriptor]
-//        
-//    }
     
     // MARK: Map functions
     
